@@ -263,11 +263,3 @@ Per una questione di comodità, sono state create diverse modalità:
 | DocTeX   | =doctex-mode=       | docTeX-mode-hook   |
 |-         |                     |                    |
 
-* Grazie/Domande?
-Ricordo di iscriversi al canale, attivare la campanella delle notifiche,
-mettere un ~Mi Piace~ e per sostenare i miei progetti è possibile effettuare
-delle donazioni con Ko-Fi.
-
-💳 Ko-Fi: https://ko-fi.com/nfvblog
-🖥️ GitHub: https://github.com/NF02
-🖥️ Mastodon: https://mastodon.cloud/@nfvblog
