@@ -9,3 +9,11 @@ con tanto di potenziali commenti per essere più chiari.
 
 Ma non solo, in questo repo potranno essere presenti parti di codice sorgente,
 legati a determinati esercizi o esempi, esercitazioni in /C, Java, COBOL, JS e Lisp/.
+
+* Contenuti :contenuti:
+Al momento le voci che appariranno, saranno:
+ * EMACS;
+ * Networking;
+ * LaTeX.
+Con tutte le soluzioni del caso, incluse le eventuali topologie di rete per GNS3,
+se necessario, con anche un esportazione in formato immagine.
