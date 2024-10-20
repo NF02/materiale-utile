@@ -1,0 +1,268 @@
+#+title: GNU/EMACS e LaTeX
+#+author: Nicola Ferru
+#+email: ask dot nfvblog at outlook dot it
+
+* Introduzione                                                        :Intro:
+GNU/EMACS è un editor completo di tutto quello che potensialmente più servire,
+per poter scrivere dei documenti LaTeX, non out of the box, ma con una configurazione
+minima è possibile mettere in produzione l'ambiente di lavoro.
+
+Sicuramente, per essere pretico l'ambiente deve avere una serie di features, come ad
+esempio:
+ * Macro dedicate;
+ * Supporto alla lettura dei pdf (/a scopo di preview/);
+ * L'autocompletamento delle istruzioni.
+Già con queste funzioni è possibile lavorare degnamente a riguardo.
+
+** Cosa serve per cominciare? :Melpa:
+Per cominciare ad utilizzare EMACS per la scrittura di documenti LaTeX, in primo
+luogo è necessario attivare il repository Melpa, per poter scaricare tutti i
+pacchetti necessari.
+#+begin_src emacs-lisp
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  (package-initialize)
+#+end_src
+E poi bisogna riavviare l'editor oppure caricare il codice (con =C-x C-e=)
+appena inserito all'interno del file ~init.el~ oppure ~.emacs~.
+Per aggiornare la cache del repository basta semplicemente utilizzare il comando
+~M-x package-refresh-contents~.
+
+** Pacchetti da installare? :lista_dei_pacchetti:
+Ora, la lista completa dei pacchetti è la seguente:
+ * ~company~: autocompletamento;
+   + ~company-auctex~: autocompletamento per LaTeX (un estensione specifica per
+     company);
+ * ~auctex~: Le macro per LaTeX, quindi si tratta di una serie di funzionalità
+   per velocizzare il lavoro;
+ * ~pdf-tools~: lettore di pdf per EMACS, basato sulla libreria poppler per tutto.
+per installare i pacchetti, come è consuetudine ~M-x packege-install RET~, nome del
+singolo pacchetto, oppure, si può creare all'interno del /scratch buffer/ una lista
+#+begin_src emacs-lisp
+   '(package-selected-packages '(company company-auctex auctex pdf-tools))
+#+end_src
+poi dopo averlo selezionato con ~C-x C-e~ sarà possibile eseguire il comando
+~M-x package-install-selected-packages~ e dare la conferma.
+
+Una volta che i pacchetti sono installati sarà necessario per configurarli.
+
+** Configurazione dei pacchetti :conf_pacchetti:
+I pacchetti da configurare, sono pdf tools e anche auctex
+
+*** pdf tools :pdf_tools:
+Dopo aver installato il pacchetto basterà inserire le seguenti istruzioni
+nel file di configurazione di EMACS (~.emacs~ oppure ~.emacs.d/init.el~).
+#+begin_src emacs-lisp
+  ;; pdf tools
+  (require 'pdf-tools)
+  (use-package pdf-tools
+    :init
+    (pdf-tools-install))
+#+end_src
+Fatto questo l'estensione viene inizializzata e controlla anche se è necessario
+ricompilarla dopo un update.
+
+*** AUCTeX :AUCTeX_macros:
+Per configurare AUXTeX, basterà inserire le seguenti istruzioni nel file
+di configurazione di EMACS (~.emacs~ oppure ~.emacs.d/init.el~).
+#+begin_src emacs-lisp
+  ;; AUCtex
+  (use-package auctex
+    :ensure t
+    :defer t)
+#+end_src
+Poi, per abilitare il lettore di pdf interno, associato ad /AUCTeX/, basta
+semplicemente definire sempre all'interno del file di configurazioni.
+#+begin_src emacs-lisp
+  ;;;; Use pdf-tools to open PDF files
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+	TeX-source-correlate-start-server t)
+  ;;;; Update PDF buffers after successful LaTeX runs
+  (add-hook 'TeX-after-compilation-finished-functions
+	    #'TeX-revert-document-buffer)
+#+end_src
+
+**** Progetti multifile :multifile:
+In molti casi vengono utilizzati degli ~\include~ oppure degli ~\input~,
+per far capure a =AUCTeX= che fanno molte volte parte dello stesso progetto
+basterà aggiungere all'interno del file di configurazione di EMACS, la
+seguente variabile:
+#+begin_src emacs-lisp
+  (setq-default TeX-master nil)
+#+end_src
+e così il problema si risolve da solo...
+
+**** Salvataggio automatico :autosave:
+Ora, nella scrittura con il LaTeX si utilizzano molti pacchetti e si fanno
+tante modifiche, per questo motivo cosa buona e giusta è quella di abilitare
+l'analisi del documento.
+#+begin_src emacs-lisp
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+#+end_src
+* Keybinding
+Per ottimizzare il lavoro sono presenti dei keybinding pensati per assistere
+l'utente EMACS, nell'arduo compito di redigere un documeto. esse si dividono
+in diverse categorie:
+
+** Sezioni e ambienti :sezioni_e_ambienti:
+Visto che si tratta comunque di markup è giusto che siano presenti questa categoria
+di keybinding
+|--------------+----------------------------------------------------------|
+| *Keybinding* | *Descrizione*                                            |
+|--------------+----------------------------------------------------------|
+|--------------+----------------------------------------------------------|
+| ~C-c C-s~    | Crea un sezione (/section/) con un label opzionale       |
+|--------------+----------------------------------------------------------|
+| ~C-c C-e~    | Crea un ambiente (=\begin= e =\end= tag), con tanto      |
+|              | di una lista completa di quelli disponibili e            |
+|              | anche eventuali parametri passabili. (cosa che non       |
+|              | vale solo per quelle mappate ma per qualunque parametro) |
+|--------------+----------------------------------------------------------|
+| ~C-c .~      | Marca la corrente sezione o sotto-sezione                |
+|--------------+----------------------------------------------------------|
+| ~C-c *~      | Marca il corrente ambiente                               |
+|--------------+----------------------------------------------------------|
+| ~C-c ]~      | chiude il corrente ambiente                              |
+|--------------+----------------------------------------------------------|
+| ~C-M-a~      | Cerca un match con il begin dell'ambiente                |
+|--------------+----------------------------------------------------------|
+| ~C-M-a~      | Cerca un match con l'end dell'ambiente                   |
+|-             |                                                          |
+
+** Compilazione :comp:
+Essendo il LaTeX un linguaggio compilato avrà bisogno di una serie di binding dedicati.
+|--------------+--------------------------------------------------------------------|
+| *Keybinding* | *Descrizione*                                                      |
+|--------------+--------------------------------------------------------------------|
+|--------------+--------------------------------------------------------------------|
+| ~C-c C-a~    | Esegue LaTeX/TeX, BibTeX/Biber, Makeindex, ecc. come appropriato   |
+|              | finché il documento non è pronto, eventualmente apre il documento  |
+|              | nel visualizzatore. è come eseguire ripetutamente ~C-c C-C~, viene |
+|              | utilizzato se si ha fiducia che AUCTeX possa soddisfarre           |
+|              | l'esigenza.                                                        |
+|--------------+--------------------------------------------------------------------|
+| ~C-c C-c~    | Compila il documento e chiede se vuoi visualizzarlo.               |
+|--------------+--------------------------------------------------------------------|
+| ~C-c C-r~    | Esegue l'attività di compilazione più adeguata (LaTeX, BibTeX,     |
+|              | View), alla regione che è stata fissata da ~C-c C-t C-r~.          |
+|              | Ovviamente se si vuole usare ~C-c~. O ~C-c *~ per facilitare       |
+|              | la selezione di una ragione.                                       |
+|--------------+--------------------------------------------------------------------|
+| ~C-c C-v~    | Visualizza il documento (/senza compilarlo/).                      |
+|--------------+--------------------------------------------------------------------|
+| ~C-c `~      | Apre il /LaTeX helper/, un inferfaccia con dei suggerimenti sul    |
+|              | possibile errore.                                                  |
+|-             |                                                                    |
+
+** Riferimenti :RefTeX:
+|--------------+--------------------------------------------------------------------------|
+| *Keybinding* | *Descrizione*                                                            |
+|--------------+--------------------------------------------------------------------------|
+|--------------+--------------------------------------------------------------------------|
+| ~C-c (~      | Aggiunge un label, e suggerisce il nome in base al nom della sezione     |
+|--------------+--------------------------------------------------------------------------|
+| ~C-c )~      | Aggiunge \ref poi permette di selezionare l'elemento delle etichetta     |
+|              | attualmente definita. Se personalizzi una determinata variabile.         |
+|              | Puoi aggiungere i comandi di riferimento hyperref, varioref, cleverref   |
+|              | e awareref all'elenco dei tipi di riferimento disponibili.               |
+|--------------+--------------------------------------------------------------------------|
+| ~C-c [~      | Aggiunge citazione. RefTeX comprende i comandi bibliografici e cercherà  |
+|              | nel file _.bib_ i riferimenti che corrispondono al modello che fornisce  |
+|              | a questo comando. Può essere personalizzato per avere a disposizione i   |
+|              | comandi di riferimento harvard, chicago e altri tipi.                    |
+|--------------+--------------------------------------------------------------------------|
+| ~C-c =~      | salta alla sezione: apre l'elenco delle sezioni e sottosezioni a cui può |
+|              | passare.                                                                 |
+|--------------+--------------------------------------------------------------------------|
+
+** Selezionare Font :font_selector:
+Tra le varie keybinding introdotte da ~AUCTeX~ ritroviamo pure quelle per caricare di
+default una tipologia speficicati di font, questo in LaTeX comunemente avviente con
+una cosa del tipo ~\text<tipo>{∗}~, cosa semplice, quanto una perdita di tempo se
+va applicato ogni volta, per questo motivo, qui di seguito sono riportate nell'ordine
+tutte le opzioni.
+|------------------+---------------+---------------|
+| *Tipologia font* | *Keybinding*  | *Descrizione* |
+|------------------+---------------+---------------|
+|------------------+---------------+---------------|
+| *Grasseto*       | ~C-c C-f C-b~ | =\textbf{*}=  |
+|------------------+---------------+---------------|
+| /italics/        | ~C-c C-f C-i~ | =\textit{*}=  |
+|------------------+---------------+---------------|
+| /emphasized/     | ~C-c C-f C-e~ | =\emph{*}=    |
+|------------------+---------------+---------------|
+| /slanted/        | ~C-c C-f C-s~ | =\textsl{*}=  |
+|------------------+---------------+---------------|
+| roman            | ~C-c C-f C-r~ | =\textrm{*}=  |
+|------------------+---------------+---------------|
+| sans serif       | ~C-c C-f C-f~ | =\textsf{*}=  |
+|------------------+---------------+---------------|
+| ~typewriter~     | ~C-c C-f C-t~ | =\texttt{*}=  |
+|------------------+---------------+---------------|
+| SMALL CAPS       | ~C-c C-f C-c~ | =\textsc{*}=  |
+|------------------+---------------+---------------|
+| *gothic font*    | ~C-c C-f g~   | =\textgt{*}=  |
+|------------------+---------------+---------------|
+| mincho font      | ~C-c C-f m~   | =\textmc{*}=  |
+|------------------+---------------+---------------|
+
+Elimina la specifica del carattere più interna contenente il punto (~C-c C-f C-d~).
+
+*** Font della Math-mode :math_mode_fonts:
+Ora, una questione di logistica, nel caso in cui si utilizzino i keybinding, della
+precedente slide, succederà semplicemente che verranno utilizzati i corrispondenti,
+come ad esempio ~\mathbf~ al posto del ~\textbf~.
+
+** Output format :OutFormat:
+|---------------+-----------------------------------------------|
+| *Keybinding*  | *Descrizione*                                 |
+|---------------+-----------------------------------------------|
+|---------------+-----------------------------------------------|
+| ~C-c C-t C-p~ | Esporta in DVI e poi in PDF                   |
+|---------------+-----------------------------------------------|
+| ~C-c C-t C-i~ | Attiva/disattiva la modalità interattiva      |
+|---------------+-----------------------------------------------|
+| ~C-c C-t C-s~ | Attiva/disattiva la modalità ~SyncTeX~        |
+|---------------+-----------------------------------------------|
+| ~C-c C-t C-o~ | Attiva e disattiva l'utilizzo di Omega/lambda |
+|---------------+-----------------------------------------------|
+
+** Altre funzionalità :other:
+Le funzionalità di AUCTeX non finiscono mica così, infatti, visto che in LaTeX, le
+"virgolette" non vengono segnate in quel modo ma così ``virgolette'', quindi
+l'estensione va a fare proprio una sostituzione a lato intuitivo.
+
+#+begin_quote
+Occhio, tutte le funzioni specificate dai keybinding sono ottenibili anche mediante
+la shell di emacs ~M-x~ con il classico suffisso ~LaTeX-*~ e in ogni caso sarà possibile
+velocizzarsi il lavoro definendo anche delle proprie macro per parti specifiche come
+speficicate in https://emacsdocs.org/docs/auctex/SEC_Contents.
+#+end_quote
+* Modalità e Hooks :modes_and_hooks:
+Per una questione di comodità, sono state create diverse modalità:
+|----------+---------------------+--------------------|
+| *Type*   | *Funzione modalità* | *Hook*             |
+|----------+---------------------+--------------------|
+|----------+---------------------+--------------------|
+| Plan TeX | =plain-tex-mode=    | plan-TeX-mode-hook |
+|----------+---------------------+--------------------|
+| LaTeX    | =latex-mode=        | LaTeX-mode-hook    |
+|----------+---------------------+--------------------|
+| AMS-TeX  | =ams-tex-mode=      | Ams-TeX-mode-hook  |
+|----------+---------------------+--------------------|
+| ConTeXt  | =context-mode=      | ConTeXt-mode-hook  |
+|----------+---------------------+--------------------|
+| Texinfo  | =texinfo-mode=      | Texinfo-mode-hook  |
+|----------+---------------------+--------------------|
+| DocTeX   | =doctex-mode=       | docTeX-mode-hook   |
+|-         |                     |                    |
+
+* Grazie/Domande?
+Ricordo di iscriversi al canale, attivare la campanella delle notifiche,
+mettere un ~Mi Piace~ e per sostenare i miei progetti è possibile effettuare
+delle donazioni con Ko-Fi.
+
+💳 Ko-Fi: https://ko-fi.com/nfvblog
+🖥️ GitHub: https://github.com/NF02
+🖥️ Mastodon: https://mastodon.cloud/@nfvblog
