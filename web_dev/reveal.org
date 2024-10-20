@@ -6,6 +6,11 @@
 #+subtitle: realizzare presentazioni con HTML+node.js
 #+email: 
 
+#+begin_quote
+Questo è il resoconto di un video presente sul mio canale in cui spiego
+come funziona in sommicapi Reveal.js un comodo framework, per la riealizzazione
+di slide beamer HTML + CSS + JS. 
+#+end_quote
 * Cos'è?
 reveal.js è un framework realizzato molto bene per la realizzazione
 di presentazioni interattive, in modo semplice e veloce.
