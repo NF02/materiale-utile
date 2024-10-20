@@ -2,6 +2,11 @@
 #+author: Nicola Ferru
 #+email: ask dot nfvblog at outlook dot it
 
+#+begin_quote
+Questo è un estratto del video a riguardo alla configurazione di GNU/EMACS
+per utilizzare il LaTeX, con alcuni commenti extra ed eventuali correzione
+per essere più fruibile in forma testuale.
+#+end_quote
 * Introduzione                                                        :Intro:
 GNU/EMACS è un editor completo di tutto quello che potensialmente più servire,
 per poter scrivere dei documenti LaTeX, non out of the box, ma con una configurazione
