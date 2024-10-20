@@ -1,1 +1,11 @@
+#+title: Materiali e dispense utili
 #+author: Nicola Ferru
+#+email: ask dot nfblog at outlook dot it
+
+In questo repository sono presenti tutti i materiali utili che verranno utilizzati
+sul canale, tra cui le presentazioni principali, e tutti quello che ritrovo anche
+dai miei archivi passati, magari riaelaborati in forma di presentazione org,
+con tanto di potenziali commenti per essere più chiari.
+
+Ma non solo, in questo repo potranno essere presenti parti di codice sorgente,
+legati a determinati esercizi o esempi, esercitazioni in /C, Java, COBOL, JS e Lisp/.
