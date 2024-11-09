@@ -1,0 +1,119 @@
+#+title: La storia di GNU/EMACS
+#+author: Nicola Ferru
+#+email: ask dot nfvblog at outlook dot it
+
+* Introduzione                                                        :Intro:
+La storia di EMACS è una storia lunga e anche abbastanza discontinua, con la
+sua nascita dovuta alle esigenze e uno sviluppo abbastanza bizzaro con
+ramificazione e una crescita interessante.
+
+** Albori                                                             :albori:
+- 1972, nel laboratorio per la ricerca sulle intelligenze artificiali
+  del MIT, il così detto MitAiLab, l'hacker Carl Mikkelsen ha implementato la
+  capacità di modifica a Display all'editor TECO, l'editor del sistema operativo
+  /ITS/ (Incompatible Time sharing System).
+- 1974, Richard Stallman aggiunge ulteriori macro a TECO (e inizia a pensare
+  ad una soluzione più coerente, pensando anche che li a poco l'Ai Lab raccolse
+  una serie di macro personalizzate).
+- 1976, Stallman crea la prima embrionale incarnazione di EMACS (Editor MACroS),
+  basato sulla lista di macro raccolte fino a quel momento e in breve tempo
+  divenne l'editor standard di ITS.
+
+** Sviluppo e diffusione                                            :sviluppo:
+- Gennaio 1978, viene scritta la prima documentazione ufficiale ad opera
+  di /Eugene Ciccarelli/, con il titolo (/An Introduction to the EMACS Editor/)
+  Documento disponibile al indirizzo:
+  https://stacks.stanford.edu/file/druid:nf576bk6271/nf576bk6271.pdf
+- 1978, presso il Cambridge Information Systems Lab di Honeywell, Bernard Greenberg
+  scrisse Multics Emacs, scritto in MacLisp, un dialetto del Lisp. Fu fatta questa
+  scelta per rendelo estremamente estensibile.
+- 1981, viene scritta la prima versione di Emacs per UNIX, scritto dal Papà del
+  linguaggio JAVA, James Gosling, scritto in C e che utilizzava come linguaggio
+  macro MockLisp, un pseudo-Lisp molto limitato (/addirittura non supportava le
+  liste/).
+
+** Editor EMACS-like
+Già dopo la prima versione di Emacs nacquro i primi editor Emacs-like, tra i quali
+EINE (~EINE Is Not EMACS~) e ZWEI (~ZWEI Was EINE Initially~), ad opera di Daniel
+Weinreb e Mike McMahon. Oppure il SINE (SINE is not EINE) scritto da Ted Anderson
+sui MagicSix operating system.
+
+Ma non solo, sono presenti tantissimi casi di editor Emacs-Like che si diversificano
+per diversi aspetti, cosa dovuta prevalentemente all'epoca in cui uscirono le prime
+versioni, infatti, fino agli Emacs Multipiattaforma, nasceva un implementazione
+dello stesso o un surrogato per poter avere quelle funzionalità in un ambiente in
+cui, non poteva essere eseguito il principale. 
+
+** GNU/EMACS                                                       :gnu_emacs:
+GNU/EMACS ha una storia molto particolare, che comincia nel 1984, con le idee di
+Richard Stallman e un iniziale co-pianificazione di Gosling, con l'obbiettivo di
+avere più funzionalità e un vero e proprio interprete Lisp, con un dialetto
+dedicato, chiamato Emacs Lisp (*o ELisp*), che è stato utilizzato per la sua
+scrittura insieme al onnipresenti *C*. Soppianto Gosling Emacs in ambiente UNIX.
+
+*** Novità                                                             :novità:
+I motivi per la quale GNU/EMACS soppianto il vecchio Gosling Emacs furono:
+1. il fatto che Emacs Lisp fosse un vero lisp che permetteva di strutturare
+   meglio le macro e anche eventuali estensioni più complesse.
+2. Il fatto free software (all'epoca stallman faceva pagare solo una quota
+   per mandare il programma su nastro);
+Queste furono le motivazioni per la quale il software inizio a diffondersi.
+
+Per la storia della licenza /GPL ed Emacs/ è disponibile una pagina che descrive
+tutto nel dettaglio reperibile in: https://www.emacswiki.org/emacs/EmacsHistory
+
+*** Emacs Lisp                                                     :emacs_lisp:
+Emacs Lisp è un dialetto del Lisp, ispirato a Common Lisp e Maclisp, per una
+questione di comodità degli sviluppatori del dialetto, in generale per molte
+funzionalità risulta abbastanza semplice, andando a preferire la ricorsione
+per tutte le funzionalità che richiedono ripetizioni, al contrario del Common
+che risulta meno limitato e presenta anche funzioni imperattive.
+#+begin_src emacs-lisp
+  (sort (list 4 3 2 8 5 1 2) #'>) ;; rende un ordine (8 5 4 3 2 2 1)
+#+end_src
+Queste istruzioni sia in Common che in Elisp.
+
+*** Espansione e numero di utenti
+GNU/Emacs oggi giorno ha una user base abbastanza folta (nulla di realmente
+sui numeri, si sospetta sui 2 milioni circa), anche se sta faticando ad avere
+nuovi utenti, questo divuto anche ai nuivi editor commerciali come VSCode che
+presentano alla nuova utenza un aspetto molto più amichevole (anche se meno
+personalizzabili nel insieme) e apparentemente vantaggioso.
+
+Nonostante tutto, al momento possiede più di 32 mila stelle su Github e vanta
+più di 8000 estensioni.
+
+*** GNU/EMACS e SXEmacs due editor divisi da un linguaggio comune
+Nel 1991, nacque Lucid Emacs ad opera di Jamie Zawinski per la Lucid Inc. a
+scopo di integrare X11 in GNU/EMACS, esattamente fu presa l'early alpha 19.
+In seguito, questo Emacsen prese poi il nome XEmacs, attualmente fermo alla
+versione 21.
+Il problema venne a sorgere dopo un po' di tempo quanto il team di GNU/EMACS e
+quello di XEmacs ebbero sempre più divergenze all'interno del progetto, alla
+fine si arresero tenendo due progetti separati e con l'uscita di GNU/EMACS 22
+che implementava la grafica mediante protocollo X11, venne sommariamente
+soppiantato dal fratello maggiore.
+Al momento esiste un fork apperentemente mantenuto chiamato SXEmacs, oltre
+al fatto che sul sito di XEmacs sia presente una versione beta del 13/05/2023
+chiamata XEmacs 21.5.35 "kohlrabi" (quindi, potenzialmente ulteriore
+frammentazione nel progetto).
+#+begin_quote
+GNU/EMACS e XEmacs sono due editor divisi da un linguaggio comune
+ - *George Bernard Shaw*
+#+end_quote
+
+*** I gentili omaggi di Linus Torvald
+Visto che Linus Torvald ha sempre belle parole per tutti, questo è il suo
+pensiero riguardo GNU/EMACS, tanto che in un intervista affermo:
+#+begin_quote
+Probabilmente il tuo assistente utente Unix di lunga data ti ha detto che
+"GNU emacs" formatta automaticamente i sorgenti C per te, e hai notato che
+sì, lo fa, ma le impostazioni predefinite che usa sono meno che desiderabili
+(in effetti, sono peggiori della digitazione casuale: un numero infinito di
+scimmie che digitano in GNU emacs non creerebbe mai un buon programma).
+#+end_quote
+Cosa che posso dire non essere vera, ma magari lui non si è trovato in quella
+configurazione. Lui favorisce uemacs (MicroEMACS) estremamente minimale e che
+non precenta grossi automatismi.
+
+* Grazie / Domande?

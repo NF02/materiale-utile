@@ -17,3 +17,4 @@ Al momento le voci che appariranno, saranno:
  * LaTeX.
 Con tutte le soluzioni del caso, incluse le eventuali topologie di rete per GNS3,
 se necessario, con anche un esportazione in formato immagine.
+
