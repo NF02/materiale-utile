@@ -115,5 +115,3 @@ scimmie che digitano in GNU emacs non creerebbe mai un buon programma).
 Cosa che posso dire non essere vera, ma magari lui non si è trovato in quella
 configurazione. Lui favorisce uemacs (MicroEMACS) estremamente minimale e che
 non precenta grossi automatismi.
-
-* Grazie / Domande?
