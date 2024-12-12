@@ -1,0 +1,166 @@
+#+title: Gestione kernel
+#+author: Nicola Ferru
+#+email: ask dot nfblog at outlook dot it
+
+#+begin_quote
+Questo fa parte del materiale presentato del mio canale, in formato intergrale,
+in alcuni casi con commenti aggiuntivi per consentire un più chiara e rapida
+comprensione, per il resto buona lettura ♥️.
+#+end_quote
+
+* Introduzione                                                        :intro:
+Il kernel è un componente centrale del proprio sistema operativo, per questo motivo sotto
+Linux è necessario andare ad effettuare una politica di gestione del suddetto, in alcuni
+casi la fa direttamente la distribuzione per l'utente, in alcuni casi deve essere lo stesso
+a gestire questo problema, tra cui gli utenti di Gentoo. Quindi, la domanda scontata è
+"/Come devo agire per gestire i miei kernel?/"
+
+Infatti, ricordando che sul proprio sistema è possibile avere più di una versione del
+kernel sarà possibile detenere almeno una versione precedente e una versione dedicata
+come il *real-time* oppure il *Zen* o il più banale *LTS* (Long-Time Support).
+
+** Esempi di gestioni fatte dalle distribuzioni                 :distro_metod:
+Ogni distribuzione Linux, adotta una propria metodologia, alcune più e altre meno
+conservative. Ad esempio, *Arch Linux* usa una politica non conservativa, in cui, di
+default mantiene installata una sola versione del kernel alla volta (non ideale,
+infatti, nel caso in cui la nuova versione non si avvii).
+
+Mentre, nel caso delle *Red Hat* e *Fedora-based* tipicamente tiene almeno la versione
+precedente del kernel per evitare questo problema.
+
+E ci sono anche distro come *Gentoo* che scaricano totalmente il badile al utente, di
+fatto il più conservativo visto che tiene tutte le versioni del kernel che sono
+state scaricate dal installazione del sistema in poi, almeno che l'utente non le
+elimini manualmente.
+
+** Gestione manuale                                         :gestione_manuale:
+Per gestire manualmente i propri Kernel bisogna conoscere diverse nozioni
+
+*** Percorsi di riferimento                                   :percorsi_kernel:
+I percorsi da monitorare per vedere, quali kernel sono ancora presenti sulla propria
+macchina sono:
+ * ~/usr/src/linux-X.Y.Z~: dove vengono collocati i sorgenti compilabili del kernel Linux;
+ * ~/lib/modules/X.Y.Z~: dove vengono salvati i moduli dopo aver installato il kernel.
+Oltre a questo, un altra cosa da tenere a mente è che nella directory ~/boot~, sono
+presenti i seguenti file
+ * ~/boot/vmlinuz-X.Y.Z~
+ * ~/boot/System.map-X.Y.Z~
+ * ~/boot/config-X.Y.Z~
+ * ~/boot/initramfs-X.Y.Z~
+file necessari al proprio bootloader per effettuare il boot del sistema. se presentano
+alla fine il suffisso ~.old~, vorrà dire che sono file di un installazione precedente
+della stessa versione del kernel già installata, che possono essere utilizzati per
+effettuare il boot con il vecchio setup.
+
+*** Come dovrei comportarmi?                                             :comp:
+Le politiche di gestione raccomandate sono quelle di mantenere minimo due versioni
+del kernel, in modo da poter avviare il sistema ancora con il vecchio kernel e
+poter quindi continuare a lavorare anche in caso di problemi o periferiche che
+per qualche motivo con la nuova versione dello stesso non vengono caricate
+correttamente.
+
+Non ha senso avere troppe versioni dello stesso kernel perché altrimenti, si passa
+dal utilità alla perdita di spazio su disco.
+
+*** Come posso eliminare le vecchie versioni del kernel?           :del_kernel:
+Esistono due metodi:
+
+**** Automatizzato (Gentoo)
+In *Gentoo Linux* esiste un utility ~app-admin/eclean-kernel~ disponibile al interno,
+del repository main, e questa funziona alla ~eselect~ maniera, presenta una lista
+di kernel installati e poi scegliere quali eliminare in modo semplice con il comando
+#+begin_src shell
+  eclean-kernel -n <N>
+#+end_src
+con ~<N>~ che sta per il numero associato alla versione del kernel presente in eselect.
+Ovviamente se non si è *root*, bisognerà utilizzare il comando del utility ~sudo~.
+**** Manuale (Universale)
+Ora, come visto prima esistono determinati percorsi, basterà eliminare i file prima
+citati:
+#+begin_src shell
+  rm -r /usr/src/linux-X.Y.Z /lib/modules/X.Y.Z # elimina il sorgenti e i moduli 
+#+end_src
+poi, per terminare la pulizia bisogna pure, andare ad eliminare i file di boot, con:
+#+begin_src shell
+  rm /boot/vmlinuz-X.Y.Z \
+     /boot/System.map-X.Y.Z \
+     /boot/config-X.Y.Z \
+     /boot/initramfs-X.Y.Z
+#+end_src
+Ma non è finita così, infatti, bisogna pure andare ad aggiornare la configurazione di
+*GRUB*, con:
+#+begin_src shell
+  grub-mkconfig -o /boot/grub/grub.cfg
+#+end_src
+Fatto questo, dovrebbe essere apposto, il sistema risulterà pulito e funzionale.
+Ovviamente se non si è *root*, bisognerà utilizzare il comando del utility ~sudo~.
+
+*** Ma quanto spazio libero?                                           :spazio:
+Per capire quanto pesa un singolo kernel è possibili utilizzare il comando ~du~,
+nello specifico consente di conteggiare il peso del singolo file per poi fare una
+somma totale. Per poter utilizzare l'unità di misura ~Gb~ bisogna utilizzare il
+parametro ~-csh~:
+#+begin_src screen
+  ~2,5G    /usr/src/linux-X.Y.Z-${distro}
+  ~350M    /lib/modules/6.6.47-${distro}
+  #+end_src
+Nel mio caso, avendo la distribuzione installata da un po' di tempo la situazione
+era la seguente:
+ #+begin_src screen
+   2,5G    /usr/src/linux-6.6.47-gentoo
+   2,4G    /usr/src/linux-6.6.52-gentoo
+   355M    /lib/modules/6.6.47-gentoo-x86_64
+   332M    /lib/modules/6.6.52-gentoo-x86_64
+   ...
+   5,5G    totale
+#+end_src
+E già da questo, lo spazio liberato non è poco...
+
+*** Microcode (ucode)                                                   :ucode:
+Il Microcode è uno pacchetto specifico per i processori di un determinato Vendor,
+che contiene istruzioni specifiche per essi, ha diversi scopi, tra i quali, quello
+di mitigare eventuali vulnerabilità specifiche. Esso al contrario degli altri
+componenti non richiede una eliminazione manuale visto che sovrascrive sempre lo
+stesso file. Precisamente:
+ * [[https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files][intel-uc.img]]: per i processori *Intel*;
+ * [[https://gitlab.com/kernel-firmware/linux-firmware/-/tree/main/amd-ucode?ref_type=heads][amd-ac.img]]: per i processori *AMD*.
+Per maggiori info su eventuali versioni del processore supportate e quanto altro,
+basta guardare nella documentazione dei due gruppi.
+
+*** Linux Firmware                                                   :firmware:
+Allora, il firmware è un altro punto fondamentale che serve per poter avviare
+determinate periferiche, esso è il componente più complessi in assoluto al interno
+dello stesso Kernel, la sua complessità è data dal fatto che sia un insieme di
+file binari, in molti casi senza codice sorgente abbinato, causando un problema
+anche a lato legale, stando in una perenne zona grigia. tipicamente i file inerenti
+al Firmware stanno in:
+ * ~/lib/firmware/~
+E da lì si è in grado di vedere anche quanto impatti sul sistema aggiungendo circa
+~1Gb~. Questo è anche il motivo per la quale Linux è utilizzabile su tantissimi
+dispositivi totalmente diversi tra di loro. Anche questo essendo comunque dei
+pacchetti binari, si aggiornano con i semplici ~Update~.
+
+**** Cosa copre il Linux firmware?                                  :cosa_copre:
+Tipicamente, i dispositivi coperti sono tipicamente:
+ * Schede e adattatori Wi-Fi;
+ * Adattatori Bluetooth;
+ * Schede video;
+ * Schede Audio;
+ * Schede di Acquisizione Video;
+ * Sonde;
+ * Controller IDE, SCSI, SATA e SAS;
+ * Adattatori Ethernet;
+ * Touchbar dei Macbook;
+ * Alcuni Touchpad;
+ * etc.
+Quindi, tra componenti nuovi e vecchi raggiungono una certa dimensione e anche una
+certa quantità.
+
+* Alcune note in merito                                                :note:
+Ci sono tante cose che possono potenzialmente possono entrare in questo discorso,
+ma alla fin fine, quello che interessa al utente è quello di mantenere il sistema
+operativo pulito ed efficiente, cosa che richiede un po' di manutenzione.
+
+* Grazie / Domande?
+Grazie per l'attenzione. Vi consiglio di mettere mi piace, iscrivervi al canale, attivare
+la campanella, donare qualche spiccio su Ko-fi e passare sulla pagina Mastodon.
