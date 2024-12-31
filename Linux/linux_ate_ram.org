@@ -215,9 +215,6 @@ linguaggi:
  * octave.
 la scelta di linguaggi misti tra alto e basso livello serve a vedere quanto sono ottimizzate
 le varie soluzioni. Per fare la valutazione, verrà utilizzata l'utilità UNIX ~time~.
-* Grazie / Domande?
-Grazie per l'attenzione. Vi consiglio di mettere mi piace, iscrivervi al canale, attivare
-la campanella, donare qualche spiccio su Ko-fi e passare sulla pagina Mastodon.
 
 * Footnotes
 
