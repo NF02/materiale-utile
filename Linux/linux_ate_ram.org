@@ -1,0 +1,224 @@
+#+title: Perché Linux consuma tanta ram?
+#+subtitle: Linux ate my RAM
+#+author: Nicola Ferru
+
+* Introduzioni                                                        :intro:
+Una delle domande più prequenti che l'utente si pone è "/Come mai la ram è già finita?/",
+le risposte possono essere diverse, eccone qui alcune:
+
+** Cosa sta succiendendo?
+Come tutti i sistemi operativi moderni, Linux prende in prestito memoria inutilizzata per
+la memorizzazione nella cache del disco. Questo fa sembrare che tu abbia poca memoria "/libera/",
+ma non è così! Tutto a posto!
+
+*** Disk Caching?                                                        :cash:
+La cache su disco rende il sistema molto più veloce e reattivo! Non ci sono aspetti negativi,
+a parte la confusione degli utenti alle prime armi con l'informatica e che non hanno familiarità
+con il concetto di cache del file system. In genere non sottrae memoria alle applicazioni.
+
+** Cosa succede se voglio eseguire più applicazioni?
+Se le tue applicazioni vogliono più memoria, il kernel riprenderà semplicemente un pezzo che la
+cache del disco ha preso in prestito. La cache del disco può sempre essere restituita alle
+applicazioni immediatamente! Non hai poca RAM! Semplicemente il sistema va ad impiegarla in modi
+diversi con un criterio prioritario!
+
+** Ho bisogno di maggiore spazio di Swap? :swap:
+Probabilmente no, la cache del disco prende in prestito principalmente la RAM che le applicazioni
+al momento non vogliono. Se le applicazioni vogliono più memoria, il kernel la riprenderà dalla
+cache del disco. Linux può spingere la memoria dell'applicazione nello swap se tale memoria viene
+utilizzata meno spesso della cache del file system, ma questo in genere migliorerà le prestazioni,
+non le danneggerà.
+
+*** Come stabilire la dimensione della partizione Swap? :SwapPart:
+Dipende da cosa ci devi fare, tipicamente, lo swap veniva fatto poco più grande della dimensione
+della ram, perché veniva utilizzata per l'ibernazione, ma tipicamente, non serve una partizione
+grandissima, in alcuni casi a dirittura, può essere utilizzata una soluzione basato su un file
+di Swap.
+
+** Come posso impedire a Linux di fare ciò?
+Non puoi disattivare completamente la cache del disco (ma puoi regolare la "/swapiness/" di Linux).
+L'unica ragione per cui qualcuno voglia disattivare la cache del disco è perché pensa che sottragga
+memoria alle proprie applicazioni, il che non è vero! La cache del disco fa sì che le applicazioni
+si carichino più velocemente e funzionino in modo più fluido, ma NON sottrae MAI memoria alle
+applicazioni! Pertanto, non c'è assolutamente motivo di disattivarla!
+
+Se, tuttavia, ti ritrovi ad aver bisogno di cancellare rapidamente un po' di RAM per qualche motivo,
+come il benchmarking dell'avvio a freddo di un'applicazione non memorizzata nella cache, puoi
+forzare Linux a eliminare le cache in modo non distruttivo utilizzando:
+#+begin_src shell
+  echo 3 | sudo tee /proc/sys/vm/drop_caches
+#+end_src
+
+** Cosa fa effettivamente questa istruzione?                  :vm_dropcaches:
+I kernel 2.6.16 e successivi forniscono un meccanismo per far sì che il kernel elimini la cache di pagina e/o
+le cache inode e dentry su comando, il che può aiutare a liberare molta memoria. Ora puoi buttare via quello
+script che ha allocato un sacco di memoria solo per sbarazzarti della cache.
+
+È possibile settare un valore compreso tra 1 e 3 per settare il "drop_caches"[fn:1], nel modo più o meno limitante.
+
+ * Per liberare la cache delle pagine:
+   #+begin_src shell
+     echo 1 > /proc/sys/vm/drop_caches
+#+end_src
+ * Per liberare dentries e inodes:
+   #+begin_src shell
+     echo 2 > /proc/sys/vm/drop_caches
+#+end_src
+ * Per liberare pagecache, dentries e inode:
+   #+begin_src shell
+     echo 3 > /proc/sys/vm/drop_caches
+#+end_src
+Ora, come già ribadito prima, questi settaggi vanno utilizzati solo se proprio c'è l'esigienza di avere un
+po' di memoria extra, ma tipicamente il sistema operativo sa come comportarsi e denderà a ridistribuire
+in base alla necessità, si sottolinea che questa impostazione non è distruttiva per il sistema operativo
+semplicamente va a liberare la memoria.
+
+** Perché top e free affermano che così poca RAM è libera, lo è veramente?
+Questa è solo una differenza di terminologia. Sia tu che Linux concordate sul fatto che la memoria occupata
+dalle applicazioni è "utilizzata", mentre la memoria che non è utilizzata per nulla è "libera".
+
+Ma come si conta la memoria che è attualmente utilizzata per qualcosa, ma che può comunque essere resa
+disponibile alle applicazioni?
+
+Si potrebbe contare quella memoria come "libera" e/o "disponibile". Linux invece la conta come "disponibile":
+|--------------------------------------------+----------------------+-----------------------------------|
+| *Questa memoria è*                         | *Viene chiamata*     | *Linux lo chiama*                 |
+|--------------------------------------------+----------------------+-----------------------------------|
+| Usata da un applicazione                   | Utilizzata           | Used                              |
+| utilizzato, ma può essere reso disponibile | libera (O avviabile) | Avviabile/disponibile (Available) |
+| non utilizzata                             | Libera               | Free                              |
+|--------------------------------------------+----------------------+-----------------------------------|
+
+Ora, se si utilizzano utilità come ~htop~ si noterà una stratificazione della memoria per colore, quello
+verde della colorazione base è quello veramente utilizzato delle applicazioni, mentre il resto è cache.
+** Quanta RAM ho veramente a disposizione?
+Per vedere quanta RAM le tue applicazioni potrebbero utilizzare senza effettuare lo swap, esegui ~free -m~
+e guarda la colonna "disponibile":
+#+begin_src shell
+  free -m
+                 total        used        free      shared  buff/cache   available
+  Mem:           15867        5135        5279         552        6333       10732
+  Swap:           8164        1276        6888
+#+end_src
+(Per le installazioni precedenti al 2014, guardare invece la colonna "free" nella riga
+"-/+ buffer/cache". Per quanto ormai questo tipo di soluzione non sia più di uso comune).
+
+Ecco la risposta in MiB, circa il ~67.637% della memoria complessia nel mio caso...
+
+Comunque, bisogna convertendo tutto in GiB:
+ * total: 15867 MiB = 16.637755392 GB;
+ * available: 10732 MiB = 11.253317632 GB;
+ * free: 5135 MiB = 5.38443776 GB;
+ * buff/cache: 6333 MiB = 6.640631808 GB;
+ * shared: 552 MiB = 0.578813952 GB;
+ * used: 5135 MiB = 5.38443776 GB.
+** Quando dovrei iniziare a preoccuparmi?
+Un sistema Linux sano con memoria più che sufficiente mostrerà, dopo un po' di tempo di esecuzione,
+il seguente comportamento previsto e innocuo:
+ * la memoria free è vicina a 0
+ * la memoria disponibile (o "free + buffer/cache") ha abbastanza spazio (diciamo, il 20%+ del
+   totale)
+ * lo swap utilizzato non cambia
+Segnali di avvertimento di una reale situazione di scarsa memoria che potresti voler esaminare:
+ * la memoria disponibile (o "free + buffer/cache") è prossima allo zero
+ * lo swap utilizzato aumenta o fluttua
+ * ~dmesg | grep oom-killer~ mostra l'OutOfMemory-killer al lavoro
+
+* Come posso verificare queste cose?
+Una delle domande che sorge prontanea a questo punto è proprio "Come si può dimostrare
+questo?", beh, estistono dei sistemi per poterlo fare, infatti, esistono delle dimostrazioni
+messe a disposizione dalla pagina [[https://www.linuxatemyram.com/play.html][linuxatemyram.com]]. Ora, si consiglia di fare questi test
+su Macchina Virtuale, visto che si andrà a saturare la memoria e a testarne i limiti.
+
+** Effetti della cache del disco sull'allocazione della memoria dell'applicazione
+Per un motivo molto semplice è il caso di cominciare proprio dalla memoria dell'applicazione:
+#+begin_src C
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <string.h>
+
+  int main(int argc, char** argv) {
+    int max = -1;
+    int mb = 0;
+    char* buffer;
+
+    if(argc > 1)
+      max = atoi(argv[1]);
+
+    while((buffer=malloc(1024*1024)) != NULL && mb != max) {
+      memset(buffer, 0, 1024*1024);
+      mb++;
+      printf("Allocated %d MB\n", mb);
+    }
+
+    return 0;
+  }
+#+end_src
+*** Compilazione ed esecuzione
+Non è divertente esaurire la memoria, ma l'OOM killer dovrebbe terminare solo questo processo e,
+si spera, il resto rimarrà indisturbato. Vorremo sicuramente disabilitare lo swap per questo,
+altrimenti l'app divorerà anche quello. Quindi:
+#+begin_src shell
+  sudo swapoff -a
+#+end_src
+e poi sarà possossibile compilare ed eseguire il processo
+#+begin_src shell
+		 total        used        free      shared  buff/cache   available
+  Mem:           15867        5135        5279         552        6333       10732
+  Swap:              0           0           0
+#+end_src
+**** Compilazione
+#+begin_src shell
+  gcc munch.c -o munch
+#+end_src
+**** Esecuzione
+Dopo averlo eseguito andrà a riempire la memoria available finché non termina:
+#+begin_src shell
+  ./munch
+  Allocated 1 MB
+  Allocated 2 MB
+  (...)
+  Allocated 10729 MB
+  Allocated 10730 MB
+  Allocated 10731 MB
+  Allocated 10732 MB
+  Killed
+#+end_src
+una volta terminata, si chiuderà e rifacendo un ~free -m~, si avrà una situazione simile
+#+begin_src shell
+  		 total        used        free      shared  buff/cache   available
+  Mem:           15867        5001        5413           0           1       10866
+  Swap:              0           0           0
+#+end_src
+Potrebbe trovarsi in una situazione similare, in cui la memoria utilizzata dai processi
+resta circa la stessa.
+
+*** Effetti del disk cache con swapping
+dopo aver fatto questo è possibile effettuare lo stesso test senza disattivare lo swap,
+e i risultati saranno i seguenti, lo swap potrebbe restare invariato. Per essere sicuri
+andiamo a testarlo con:
+#+begin_src shell
+  ./munch 400
+#+end_src
+e vedere poi che succede.
+
+** Timing
+Un altro dei punti fondamentali da valutare è la tempistica che il sistema impiega a svolgere
+un operazione elementare, per fare questo, ho scritto degli "hello world!" nei seguenti
+linguaggi:
+ * C;
+ * Fortran90;
+ * Common Lisp;
+ * Python;
+ * Java;
+ * shell;
+ * octave.
+la scelta di linguaggi misti tra alto e basso livello serve a vedere quanto sono ottimizzate
+le varie soluzioni. Per fare la valutazione, verrà utilizzata l'utilità UNIX ~time~.
+* Grazie / Domande?
+Grazie per l'attenzione. Vi consiglio di mettere mi piace, iscrivervi al canale, attivare
+la campanella, donare qualche spiccio su Ko-fi e passare sulla pagina Mastodon.
+
+* Footnotes
+
+[fn:1] https://linux-mm.org/Drop_Caches
